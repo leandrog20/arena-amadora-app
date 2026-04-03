@@ -37,6 +37,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Erro interno do servidor.' });
 });
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 app.listen(PORT, () => {
   console.log(`🏆 Arena Amadora rodando em http://localhost:${PORT}`);
 });
