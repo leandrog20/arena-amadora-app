@@ -14,10 +14,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── API Routes ────────────────────────────────────────────
-app.use('/api/auth',     require('./routes/auth'));
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/torneios', require('./routes/torneios'));
-app.use('/api/users',    require('./routes/users'));
-app.use('/api/config',   require('./routes/config'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/config', require('./routes/config'));
 
 // ── SPA fallback ─────────────────────────────────────────
 // Serve index.html para rotas não-API (permite navegação direta por URL)
@@ -38,7 +38,7 @@ app.use((err, req, res, next) => {
 });
 
 if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
+  require('dotenv').config()
 }
 
 app.listen(PORT, () => {

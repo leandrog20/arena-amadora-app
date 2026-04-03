@@ -138,8 +138,18 @@
         </div>
         <div class="field"><label>Data</label><input type="date" id="t-data"></div>
         <div class="field"><label>Vagas</label><input type="number" id="t-vagas" value="32" min="4" max="256"></div>
-        <div class="field"><label>Taxa (R$) – 0=Grátis</label><input type="number" id="t-taxa" value="10" min="0"></div>
-        <div class="field"><label>Prêmio (R$)</label><input type="number" id="t-premio" value="50" min="0"></div>
+        <div class="field"><label>Taxa (R$) – 0=Grátis</label><input type="number" id="t-taxa" value="10" min="0" step="0.5"></div>
+        <div class="field"><label>Prêmio Total Destinado (R$)</label><input type="number" id="t-premio" value="50" min="0" step="0.5"></div>
+        <div class="field span2" id="calc-rateio" style="display:none; background:rgba(168,85,247,0.06); border:1px dashed rgba(168,85,247,0.3); border-radius:10px; padding:12px;">
+           <div style="font-size:11px; font-weight:700; color:var(--admin); margin-bottom:6px; letter-spacing:1.5px; text-transform:uppercase;">📊 Projeção de Rateio (Cenário Lotado)</div>
+           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px; color:var(--text); margin-bottom:6px">
+             <div>Arrecadação Max: <strong id="c-total" style="color:var(--text)">R$0.00</strong></div>
+             <div>Lucro Admin (10%): <strong id="c-admin" style="color:var(--success)">R$0.00</strong></div>
+             <div>1º Lugar (~70%): <strong id="c-p1" style="color:var(--gold)">R$0.00</strong></div>
+             <div>2º Lugar (~30%): <strong id="c-p2" style="color:var(--gold2)">R$0.00</strong></div>
+           </div>
+           <div style="font-size:10px; color:var(--muted);">*Ao ajustar taxa/vagas, o <b>Prêmio Total Destinado</b> será auto-preenchido com 90% da arrecadação para sorteio.</div>
+        </div>
         <div class="field"><label>Formato</label>
           <select id="t-formato">
             <option value="eliminatorio">Eliminatória Simples</option><option value="dupla">Dupla Eliminação</option>
@@ -256,6 +266,30 @@ async function loadDashboard(){
 }
 
 // ── Criar Torneio ─────────────────────────────────────────
+function updateRateio() {
+  const vagas = parseInt(document.getElementById('t-vagas').value) || 0;
+  const taxa = parseFloat(document.getElementById('t-taxa').value) || 0;
+  const total = vagas * taxa;
+  const calcBox = document.getElementById('calc-rateio');
+  if (total > 0) {
+    calcBox.style.display = 'block';
+    const lucro = total * 0.10;
+    const premio = total * 0.90;
+    const p1 = premio * 0.70;
+    const p2 = premio * 0.30;
+    document.getElementById('c-total').textContent = 'R$' + total.toFixed(2);
+    document.getElementById('c-admin').textContent = 'R$' + lucro.toFixed(2);
+    document.getElementById('c-p1').textContent = 'R$' + p1.toFixed(2);
+    document.getElementById('c-p2').textContent = 'R$' + p2.toFixed(2);
+    document.getElementById('t-premio').value = premio.toFixed(2);
+  } else {
+    calcBox.style.display = 'none';
+  }
+}
+document.getElementById('t-vagas').addEventListener('input', updateRateio);
+document.getElementById('t-taxa').addEventListener('input', updateRateio);
+setTimeout(updateRateio, 200);
+
 document.getElementById('btn-criar-torneio').addEventListener('click',async()=>{
   const nome=document.getElementById('t-nome').value.trim();
   const jogo=document.getElementById('t-jogo').value;
@@ -275,7 +309,8 @@ document.getElementById('btn-criar-torneio').addEventListener('click',async()=>{
     if(!r.ok) return showToast('⚠️ '+(d.error||'Erro'),'error');
     showToast('✅ Torneio criado!','success');
     ['t-nome','t-regras'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('t-taxa').value='10';document.getElementById('t-premio').value='50';document.getElementById('t-vagas').value='32';
+    document.getElementById('t-taxa').value='10';document.getElementById('t-vagas').value='32';
+    updateRateio();
     await loadDashboard();
   }catch(e){if(e.message!=='unauth')showToast('Erro de conexão','error');}
   finally{btn.disabled=false;btn.textContent='⚡ Criar Torneio';}
