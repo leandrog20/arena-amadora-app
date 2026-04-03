@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arena Amadora – Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--gold:#FFD700;--gold2:#FFA500;--dark:#07080d;--card:#10121a;--card2:#141720;--border:rgba(255,215,0,.12);--text:#e4e6f0;--muted:#565869;--danger:#ff4d6d;--success:#00e5a0;--admin:#a855f7;--bottom-h:72px}
+  html{scroll-behavior:smooth}
+  body{font-family:'Rajdhani',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;padding-bottom:var(--bottom-h);overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(168,85,247,.06) 0%,transparent 60%),var(--dark)}
+
+  .topbar{position:sticky;top:0;z-index:100;background:rgba(7,8,13,.95);backdrop-filter:blur(16px);border-bottom:1px solid rgba(168,85,247,.15);padding:12px 16px;display:flex;align-items:center;gap:12px}
+  .admin-badge{background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(168,85,247,.08));border:1px solid rgba(168,85,247,.35);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:var(--admin);letter-spacing:2px;text-transform:uppercase}
+  .topbar-title{flex:1;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;background:linear-gradient(135deg,#FFD700,#FFA500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .btn-logout-top{padding:7px 12px;border-radius:8px;border:1px solid rgba(255,77,109,.25);background:rgba(255,77,109,.06);color:var(--danger);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s}
+  .btn-logout-top:hover{background:rgba(255,77,109,.12)}
+
+  .stats-bar{padding:20px 16px 16px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .stat-tile{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;position:relative;overflow:hidden}
+  .stat-tile::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,215,0,.04),transparent)}
+  .stat-icon{font-size:24px;margin-bottom:8px}
+  .stat-val{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:900;color:var(--gold)}
+  .stat-lbl{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+  .stat-tile.purple .stat-val{color:var(--admin)}.stat-tile.green .stat-val{color:var(--success)}.stat-tile.red .stat-val{color:var(--danger)}
+
+  .section{padding:8px 16px 16px}
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .section-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold)}
+
+  .form-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden}
+  .form-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--admin),transparent)}
+  .form-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--admin);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.span2{grid-column:1/-1}
+  .field label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+  .field input,.field select,.field textarea{padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:500;outline:none;transition:all .2s}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.04);box-shadow:0 0 0 3px rgba(168,85,247,.08)}
+  .field select option{background:var(--card2);color:var(--text)}
+  .field textarea{resize:vertical;min-height:70px}
+
+  .btn-admin{padding:12px 20px;border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .25s}
+  .btn-admin:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
+  .btn-admin.purple{background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;box-shadow:0 4px 16px rgba(168,85,247,.25)}
+  .btn-admin.purple:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(168,85,247,.4)}
+  .btn-admin.gold{background:linear-gradient(135deg,#FFD700,#FFA500);color:#0a0b0f;box-shadow:0 4px 16px rgba(255,165,0,.25)}
+  .btn-admin.gold:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,165,0,.4)}
+  .btn-admin.danger{background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.3);color:var(--danger)}
+  .btn-admin.danger:hover{background:rgba(255,77,109,.18)}
+  .btn-admin.sm{padding:7px 14px;font-size:12px}
+  .btn-admin.full{width:100%}
+
+  .table-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+  .table-scroll{overflow-x:auto}
+  .data-table{width:100%;border-collapse:collapse}
+  .data-table th{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05)}
+  .data-table td{padding:12px 12px;font-size:14px;border-bottom:1px solid rgba(255,255,255,.04)}
+  .data-table tr:last-child td{border:none}
+  .data-table tr:hover td{background:rgba(255,255,255,.02)}
+  .t-row-name{font-weight:700;color:var(--text)}
+  .t-row-sub{font-size:11px;color:var(--muted);margin-top:1px}
+  .mini-badge{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:20px}
+  .mini-badge.aberto{background:rgba(0,229,160,.1);color:var(--success);border:1px solid rgba(0,229,160,.2)}
+  .mini-badge.encerrado{background:rgba(255,77,109,.1);color:var(--danger);border:1px solid rgba(255,77,109,.2)}
+
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;height:var(--bottom-h);background:rgba(7,8,13,.97);backdrop-filter:blur(16px);border-top:1px solid rgba(168,85,247,.12);display:flex;align-items:stretch}
+  .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:all .2s;border:none;background:transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;padding:8px 4px}
+  .nav-item.active{color:var(--admin)}
+  .nav-icon{font-size:22px;line-height:1;transition:transform .2s}
+  .nav-item.active .nav-icon{transform:scale(1.15)}
+  .nav-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .nav-dot{width:4px;height:4px;border-radius:50%;background:var(--admin);margin:0 auto;opacity:0}
+  .nav-item.active .nav-dot{opacity:1}
+  .page-section{display:none}.page-section.active{display:block}
+
+  .toast{position:fixed;bottom:calc(var(--bottom-h)+12px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:14px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:300;opacity:0;pointer-events:none;transition:all .3s;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.success{border-color:rgba(0,229,160,.4);color:var(--success)}
+  .toast.error{border-color:rgba(255,77,109,.4);color:var(--danger)}
+  .toast.info{border-color:rgba(168,85,247,.4);color:var(--admin)}
+
+  .pix-current{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--gold);padding:12px 16px;background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.15);border-radius:10px;margin-bottom:12px;word-break:break-all}
+  .user-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(168,85,247,.05));display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid rgba(168,85,247,.2);flex-shrink:0}
+  .user-info{flex:1}
+  .user-name{font-weight:700;font-size:15px}
+  .user-meta{font-size:12px;color:var(--muted);margin-top:2px}
+  .user-saldo{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--success)}
+  .loading-placeholder{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+  .spinner{display:inline-block;width:24px;height:24px;border:2px solid rgba(168,85,247,.2);border-top-color:var(--admin);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div style="font-size:24px">🛡️</div>
+  <div class="topbar-title">Painel Admin</div>
+  <div class="admin-badge">Admin</div>
+  <button class="btn-logout-top" id="btn-logout">Sair</button>
+</header>
+
+<!-- DASHBOARD -->
+<div class="page-section active" id="page-dashboard">
+  <div class="stats-bar">
+    <div class="stat-tile"><div class="stat-icon">🏆</div><div class="stat-val" id="stat-torneios">-</div><div class="stat-lbl">Torneios</div></div>
+    <div class="stat-tile purple"><div class="stat-icon">👥</div><div class="stat-val" id="stat-users">-</div><div class="stat-lbl">Usuários</div></div>
+    <div class="stat-tile green"><div class="stat-icon">💰</div><div class="stat-val" id="stat-receita">-</div><div class="stat-lbl">Receita</div></div>
+    <div class="stat-tile red"><div class="stat-icon">🎮</div><div class="stat-val" id="stat-inscricoes">-</div><div class="stat-lbl">Inscrições</div></div>
+  </div>
+  <div class="section">
+    <div class="section-header"><div class="section-title">🏆 Torneios Recentes</div></div>
+    <div class="table-card"><div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Torneio</th><th>Inscrições</th><th>Prêmio</th><th>Status</th></tr></thead>
+        <tbody id="dash-torneios-body"><tr><td colspan="4"><div class="loading-placeholder"><div class="spinner"></div><br>Carregando...</div></td></tr></tbody>
+      </table>
+    </div></div>
+  </div>
+</div>
+
+<!-- CRIAR -->
+<div class="page-section" id="page-criar">
+  <div class="section" style="padding-top:20px">
+    <div class="form-card">
+      <div class="form-title">🏆 Criar Novo Torneio</div>
+      <div class="form-grid">
+        <div class="field span2"><label>Nome do Torneio</label><input type="text" id="t-nome" placeholder="Ex: Copa Clash Royale #1"></div>
+        <div class="field"><label>Jogo</label>
+          <select id="t-jogo">
+            <option value="coc">Clash of Clans</option><option value="cr">Clash Royale</option>
+            <option value="brawl">Brawl Stars</option><option value="ff">Free Fire</option>
+            <option value="pubg">PUBG Mobile</option><option value="efootball">eFootball</option><option value="mc">Mobile Legends</option>
+          </select>
+        </div>
+        <div class="field"><label>Data</label><input type="date" id="t-data"></div>
+        <div class="field"><label>Vagas</label><input type="number" id="t-vagas" value="32" min="4" max="256"></div>
+        <div class="field"><label>Taxa (R$) – 0=Grátis</label><input type="number" id="t-taxa" value="10" min="0"></div>
+        <div class="field"><label>Prêmio (R$)</label><input type="number" id="t-premio" value="50" min="0"></div>
+        <div class="field"><label>Formato</label>
+          <select id="t-formato">
+            <option value="eliminatorio">Eliminatória Simples</option><option value="dupla">Dupla Eliminação</option>
+            <option value="grupos">Fase de Grupos</option><option value="liga">Liga (Pontos)</option>
+          </select>
+        </div>
+        <div class="field span2"><label>Regras / Descrição</label><textarea id="t-regras" placeholder="Descreva as regras..."></textarea></div>
+      </div>
+      <div style="margin-top:16px"><button class="btn-admin gold full" id="btn-criar-torneio">⚡ Criar Torneio</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- TORNEIOS -->
+<div class="page-section" id="page-torneios">
+  <div class="section" style="padding-top:20px">
+    <div class="section-header">
+      <div class="section-title">🏆 Todos os Torneios</div>
+      <span style="font-size:12px;color:var(--muted)" id="all-t-count"></span>
+    </div>
+    <div id="all-torneios-list"><div class="loading-placeholder"><div class="spinner"></div><br>Carregando...</div></div>
+  </div>
+</div>
+
+<!-- USUÁRIOS -->
+<div class="page-section" id="page-usuarios">
+  <div class="section" style="padding-top:20px">
+    <div class="section-header">
+      <div class="section-title">👥 Usuários</div>
+      <span style="font-size:12px;color:var(--muted)" id="users-count"></span>
+    </div>
+    <div id="users-list"><div class="loading-placeholder"><div class="spinner"></div><br>Carregando...</div></div>
+  </div>
+</div>
+
+<!-- CONFIG -->
+<div class="page-section" id="page-config">
+  <div class="section" style="padding-top:20px">
+    <div class="form-card">
+      <div class="form-title">🔑 Chave PIX</div>
+      <div class="pix-current" id="pix-current-display">Carregando...</div>
+      <div class="field" style="margin-bottom:12px"><label>Nova Chave PIX</label><input type="text" id="pix-nova" placeholder="Email, CPF, Telefone ou Aleatória"></div>
+      <button class="btn-admin purple full" id="btn-salvar-pix">💾 Salvar Chave PIX</button>
+    </div>
+    <div class="form-card">
+      <div class="form-title">⚙️ Configurações</div>
+      <div class="field" style="margin-bottom:16px"><label>Nome da Arena</label><input type="text" id="cfg-nome" placeholder="Nome da plataforma"></div>
+      <button class="btn-admin gold full" id="btn-salvar-cfg">💾 Salvar Configurações</button>
+    </div>
+    <div class="form-card" style="border-color:rgba(255,77,109,.2)">
+      <div class="form-title" style="color:var(--danger)">⚠️ Zona de Perigo</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">Ações irreversíveis no banco de dados.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-admin danger sm" id="btn-limpar-torneios">🗑️ Limpar Torneios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span><span class="nav-dot"></span></button>
+  <button class="nav-item" data-page="criar"><span class="nav-icon">➕</span><span class="nav-label">Criar</span><span class="nav-dot"></span></button>
+  <button class="nav-item" data-page="torneios"><span class="nav-icon">🏆</span><span class="nav-label">Torneios</span><span class="nav-dot"></span></button>
+  <button class="nav-item" data-page="usuarios"><span class="nav-icon">👥</span><span class="nav-label">Usuários</span><span class="nav-dot"></span></button>
+  <button class="nav-item" data-page="config"><span class="nav-icon">⚙️</span><span class="nav-label">Config</span><span class="nav-dot"></span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GAME_NAMES={coc:'Clash of Clans',cr:'Clash Royale',brawl:'Brawl Stars',ff:'Free Fire',pubg:'PUBG Mobile',efootball:'eFootball',mc:'Mobile Legends'};
+const GAME_EMOJIS={coc:'🏰',cr:'⚔️',brawl:'🌟',ff:'🔥',pubg:'🎯',efootball:'⚽',mc:'🗡️'};
+
+async function api(path,opts={}){
+  const r=await fetch(path,{...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})}});
+  if(r.status===401){window.location.href='/login.html';throw new Error('unauth');}
+  if(r.status===403){showToast('⚠️ Acesso negado','error');throw new Error('forbidden');}
+  return r;
+}
+
+function showToast(msg,type='info'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+type;setTimeout(()=>t.className='toast',2800);}
+
+// ── Init ──────────────────────────────────────────────────
+async function init(){
+  try{
+    const me=await (await fetch('/api/auth/me')).json();
+    if(!me||me.role!=='admin'){window.location.href='/login.html';return;}
+    await loadDashboard();
+    await loadConfig();
+  }catch(e){if(e.message!=='unauth')window.location.href='/login.html';}
+}
+
+// ── Dashboard ─────────────────────────────────────────────
+async function loadDashboard(){
+  const [statsR,torneiosR]=await Promise.all([api('/api/config/stats'),api('/api/torneios')]);
+  const stats=await statsR.json();
+  const torneios=await torneiosR.json();
+
+  document.getElementById('stat-torneios').textContent=stats.torneios;
+  document.getElementById('stat-users').textContent=stats.usuarios;
+  document.getElementById('stat-receita').textContent='R$'+(stats.receita||0).toFixed(0);
+  document.getElementById('stat-inscricoes').textContent=stats.inscricoes;
+
+  const tbody=document.getElementById('dash-torneios-body');
+  const recent=torneios.slice(0,6);
+  if(!recent.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">Nenhum torneio ainda</td></tr>';return;}
+  tbody.innerHTML=recent.map(t=>`
+    <tr>
+      <td><div class="t-row-name">${GAME_EMOJIS[t.jogo]||'🎮'} ${t.nome}</div><div class="t-row-sub">${GAME_NAMES[t.jogo]||t.jogo} · ${t.data_txt||'Sem data'}</div></td>
+      <td>${t.inscricoes_count||0}/${t.vagas}</td>
+      <td style="color:var(--gold);font-family:'Orbitron',sans-serif;font-size:12px">R$${t.premio||0}</td>
+      <td><span class="mini-badge ${(t.inscricoes_count||0)>=(t.vagas||32)?'encerrado':'aberto'}">${(t.inscricoes_count||0)>=(t.vagas||32)?'Lotado':'Aberto'}</span></td>
+    </tr>`).join('');
+}
+
+// ── Criar Torneio ─────────────────────────────────────────
+document.getElementById('btn-criar-torneio').addEventListener('click',async()=>{
+  const nome=document.getElementById('t-nome').value.trim();
+  const jogo=document.getElementById('t-jogo').value;
+  const dataRaw=document.getElementById('t-data').value;
+  const vagas=parseInt(document.getElementById('t-vagas').value)||32;
+  const taxa=parseFloat(document.getElementById('t-taxa').value)||0;
+  const premio=parseFloat(document.getElementById('t-premio').value)||0;
+  const formato=document.getElementById('t-formato').value;
+  const regras=document.getElementById('t-regras').value.trim();
+  const data_txt=dataRaw?new Date(dataRaw+'T12:00:00').toLocaleDateString('pt-BR'):'A definir';
+  if(!nome) return showToast('⚠️ Informe o nome do torneio','error');
+  const btn=document.getElementById('btn-criar-torneio');
+  btn.disabled=true;btn.textContent='Criando...';
+  try{
+    const r=await api('/api/torneios',{method:'POST',body:JSON.stringify({nome,jogo,data_txt,vagas,taxa,premio,formato,regras})});
+    const d=await r.json();
+    if(!r.ok) return showToast('⚠️ '+(d.error||'Erro'),'error');
+    showToast('✅ Torneio criado!','success');
+    ['t-nome','t-regras'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('t-taxa').value='10';document.getElementById('t-premio').value='50';document.getElementById('t-vagas').value='32';
+    await loadDashboard();
+  }catch(e){if(e.message!=='unauth')showToast('Erro de conexão','error');}
+  finally{btn.disabled=false;btn.textContent='⚡ Criar Torneio';}
+});
+
+// ── All Torneios ──────────────────────────────────────────
+async function loadAllTorneios(){
+  const r=await api('/api/torneios');
+  const torneios=await r.json();
+  const container=document.getElementById('all-torneios-list');
+  document.getElementById('all-t-count').textContent=torneios.length+' torneios';
+  if(!torneios.length){container.innerHTML='<div class="loading-placeholder">Nenhum torneio ainda. Crie um!</div>';return;}
+  container.innerHTML=torneios.map(t=>{
+    const inscs=t.inscricoes_count||0;
+    const pct=Math.min(100,Math.round((inscs/(t.vagas||32))*100));
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:13px;color:var(--muted)">${GAME_EMOJIS[t.jogo]||'🎮'} ${GAME_NAMES[t.jogo]||t.jogo} · ${t.data_txt||'Sem data'}</div>
+          <div style="font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-top:4px">${t.nome}</div>
+        </div>
+        <span class="mini-badge ${inscs>=(t.vagas||32)?'encerrado':'aberto'}">${inscs>=(t.vagas||32)?'Lotado':'Aberto'}</span>
+      </div>
+      <div style="display:flex;gap:16px;font-size:12px;color:var(--muted);margin-bottom:12px;flex-wrap:wrap">
+        <span>👥 <strong style="color:var(--text)">${inscs}/${t.vagas}</strong></span>
+        <span>💰 <strong style="color:var(--gold)">R$${t.taxa||0}</strong> entrada</span>
+        <span>🏆 <strong style="color:var(--success)">R$${t.premio||0}</strong> prêmio</span>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-bottom:12px"><div style="height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));width:${pct}%"></div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-admin danger sm" onclick="deleteTorneio('${t.id}')">🗑️ Excluir</button>
+        <button class="btn-admin sm" style="background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);color:var(--success)" onclick="verInscritos('${t.id}','${t.nome}')">👥 Inscritos (${inscs})</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteTorneio(id){
+  if(!confirm('Excluir este torneio?'))return;
+  const r=await api(`/api/torneios/${id}`,{method:'DELETE'});
+  if(r.ok){showToast('🗑️ Torneio excluído','info');await loadAllTorneios();await loadDashboard();}
+  else showToast('Erro ao excluir','error');
+}
+
+async function verInscritos(id,nome){
+  const r=await api(`/api/torneios/${id}/inscritos`);
+  const list=await r.json();
+  if(!list.length){showToast('Nenhum inscrito ainda','info');return;}
+  alert(`Inscritos em "${nome}":\n\n${list.map(u=>`• ${u.name} (${u.phone})`).join('\n')}`);
+}
+
+window.deleteTorneio=deleteTorneio;
+window.verInscritos=verInscritos;
+
+// ── Usuários ──────────────────────────────────────────────
+async function loadUsers(){
+  const r=await api('/api/users');
+  const users=await r.json();
+  const container=document.getElementById('users-list');
+  const avatars=['🦁','🐺','🦊','🐯','🦅','🐉','🦈','🐸','🦋','🦜'];
+  document.getElementById('users-count').textContent=users.length+' usuários';
+  if(!users.length){container.innerHTML='<div class="loading-placeholder">Nenhum usuário cadastrado</div>';return;}
+  container.innerHTML=users.map((u,i)=>`
+    <div class="user-card">
+      <div class="user-avatar">${avatars[i%10]}</div>
+      <div class="user-info">
+        <div class="user-name">${u.name}</div>
+        <div class="user-meta">📱 ${u.phone||'-'} · 🎮 ${u.inscricoes_count||0} inscrições · ${new Date(u.created_at).toLocaleDateString('pt-BR')}</div>
+      </div>
+      <div>
+        <div class="user-saldo">R$${(u.saldo||0).toFixed(2)}</div>
+        <button class="btn-admin danger sm" style="margin-top:6px;width:100%" onclick="deleteUser(${u.id})">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteUser(id){
+  if(!confirm('Excluir este usuário?'))return;
+  const r=await api(`/api/users/${id}`,{method:'DELETE'});
+  if(r.ok){showToast('🗑️ Usuário excluído','info');await loadUsers();await loadDashboard();}
+  else showToast('Erro ao excluir','error');
+}
+window.deleteUser=deleteUser;
+
+// ── Config ────────────────────────────────────────────────
+async function loadConfig(){
+  const r=await api('/api/config');
+  const cfg=await r.json();
+  document.getElementById('pix-current-display').textContent=cfg.pix_key||'arena@amadora.com';
+  document.getElementById('cfg-nome').value=cfg.arena_nome||'Arena Amadora';
+}
+
+document.getElementById('btn-salvar-pix').addEventListener('click',async()=>{
+  const val=document.getElementById('pix-nova').value.trim();
+  if(!val)return showToast('⚠️ Informe a chave PIX','error');
+  const r=await api('/api/config',{method:'PUT',body:JSON.stringify({pix_key:val})});
+  if(r.ok){document.getElementById('pix-nova').value='';await loadConfig();showToast('✅ Chave PIX salva!','success');}
+  else showToast('Erro ao salvar','error');
+});
+
+document.getElementById('btn-salvar-cfg').addEventListener('click',async()=>{
+  const nome=document.getElementById('cfg-nome').value.trim();
+  const r=await api('/api/config',{method:'PUT',body:JSON.stringify({arena_nome:nome})});
+  if(r.ok)showToast('✅ Configurações salvas!','success');
+  else showToast('Erro ao salvar','error');
+});
+
+document.getElementById('btn-limpar-torneios').addEventListener('click',async()=>{
+  if(!confirm('Excluir TODOS os torneios?'))return;
+  const torneios=await (await api('/api/torneios')).json();
+  await Promise.all(torneios.map(t=>api(`/api/torneios/${t.id}`,{method:'DELETE'})));
+  showToast('🗑️ Torneios removidos','info');
+  await loadDashboard();
+  document.getElementById('all-torneios-list').innerHTML='<div class="loading-placeholder">Nenhum torneio</div>';
+});
+
+// ── Nav ───────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.page-section').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    const page=btn.dataset.page;
+    document.getElementById('page-'+page).classList.add('active');
+    if(page==='dashboard')loadDashboard();
+    if(page==='torneios')loadAllTorneios();
+    if(page==='usuarios')loadUsers();
+    if(page==='config')loadConfig();
+  });
+});
+
+document.getElementById('btn-logout').addEventListener('click',async()=>{
+  await fetch('/api/auth/logout',{method:'POST'});
+  window.location.href='/login.html';
+});
+
+init();
+</script>
+</body>
+</html>

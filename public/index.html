@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arena Amadora – Torneios</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--gold:#FFD700;--gold2:#FFA500;--dark:#080a10;--card:#12141e;--card2:#161924;--border:rgba(255,215,0,.12);--text:#e4e6f0;--muted:#5a5d72;--danger:#ff4d6d;--success:#00e5a0;--bottom-h:72px}
+  html{scroll-behavior:smooth}
+  body{font-family:'Rajdhani',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;padding-bottom:var(--bottom-h);overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 100% 50% at 50% 0%,rgba(255,165,0,.05) 0%,transparent 60%),var(--dark)}
+
+  /* TOPBAR */
+  .topbar{position:sticky;top:0;z-index:100;background:rgba(8,10,16,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px}
+  .topbar-logo{height:42px;width:auto;object-fit:contain}
+  .topbar-logo-fallback{font-size:28px;line-height:1}
+  .topbar-brand{flex:1}
+  .topbar-brand-name{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;background:linear-gradient(135deg,#FFD700,#FFA500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px}
+  .topbar-brand-sub{font-size:11px;color:var(--muted);letter-spacing:2px}
+  .saldo-badge{background:linear-gradient(135deg,rgba(0,229,160,.15),rgba(0,229,160,.05));border:1px solid rgba(0,229,160,.25);border-radius:8px;padding:4px 10px;font-size:13px;font-weight:700;color:var(--success);white-space:nowrap}
+
+  /* HERO */
+  .hero{width:100%;background:linear-gradient(135deg,#1a1028,#0e1820,#1a1028);border-bottom:1px solid var(--border);padding:28px 16px;text-align:center;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 50% 50%,rgba(255,215,0,.06) 0%,transparent 70%);animation:heroPulse 4s ease-in-out infinite}
+  @keyframes heroPulse{0%,100%{opacity:.5}50%{opacity:1}}
+  .hero-emoji{font-size:48px;line-height:1;margin-bottom:10px;display:block;animation:bounce 2s ease-in-out infinite}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .hero-title{font-family:'Orbitron',sans-serif;font-size:clamp(20px,5vw,28px);font-weight:900;background:linear-gradient(135deg,#FFD700,#FFA500,#FF6B35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px}
+  .hero-sub{font-size:15px;color:var(--muted);margin-top:6px}
+  .hero-stats{display:flex;justify-content:center;gap:24px;margin-top:20px;flex-wrap:wrap}
+  .hero-stat{text-align:center}
+  .hero-stat-val{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--gold)}
+  .hero-stat-lbl{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+
+  /* SECTION */
+  .section{padding:24px 16px 8px}
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .section-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold)}
+
+  /* GAMES */
+  .games-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;-ms-overflow-style:none}
+  .games-scroll::-webkit-scrollbar{display:none}
+  .game-card{flex:0 0 100px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 8px 12px;text-align:center;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+  .game-card:hover{border-color:rgba(255,215,0,.35);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+  .game-card.active{border-color:rgba(255,215,0,.5);background:rgba(255,215,0,.06)}
+  .game-emoji{font-size:32px;line-height:1;margin-bottom:8px;display:block}
+  .game-name{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--text);line-height:1.3}
+  .game-count{font-size:10px;color:var(--muted);margin-top:4px}
+
+  /* TOURNAMENT CARDS */
+  .tournaments-list{display:flex;flex-direction:column;gap:14px}
+  .t-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .25s;animation:fadeUp .4s ease both}
+  .t-card:hover{border-color:rgba(255,215,0,.3);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+  .t-card-header{padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .t-badge{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 8px;border-radius:20px}
+  .t-badge.aberto{background:rgba(0,229,160,.12);color:var(--success);border:1px solid rgba(0,229,160,.25)}
+  .t-badge.cheio{background:rgba(255,77,109,.12);color:var(--danger);border:1px solid rgba(255,77,109,.25)}
+  .t-badge.breve{background:rgba(255,215,0,.1);color:var(--gold);border:1px solid rgba(255,215,0,.25)}
+  .t-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-top:2px;line-height:1.4}
+  .t-game-name{font-size:11px;color:var(--muted);margin-top:2px}
+  .t-card-body{padding:14px 16px}
+  .t-info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .t-info{text-align:center}
+  .t-info-val{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
+  .t-info-val.gold{color:var(--gold)}
+  .t-info-val.green{color:var(--success)}
+  .t-info-lbl{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+  .t-progress{height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-bottom:14px}
+  .t-progress-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .6s ease}
+  .btn-inscricao{width:100%;padding:12px;border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .25s}
+  .btn-inscricao.open{background:linear-gradient(135deg,#FFD700,#FFA500);color:#0a0b0f;box-shadow:0 4px 16px rgba(255,165,0,.25)}
+  .btn-inscricao.open:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,165,0,.4)}
+  .btn-inscricao.enrolled{background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:var(--success)}
+  .btn-inscricao.closed{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted);cursor:not-allowed}
+  .btn-inscricao.free-pill{background:linear-gradient(135deg,rgba(0,229,160,.2),rgba(0,229,160,.08));border:1px solid rgba(0,229,160,.3);color:var(--success)}
+  .btn-inscricao.free-pill:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,229,160,.2)}
+  .btn-inscricao:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .3s}
+  .modal-overlay.show{opacity:1;pointer-events:all}
+  .modal-box{width:100%;max-width:440px;background:var(--card2);border:1px solid var(--border);border-radius:24px 24px 16px 16px;padding:28px 24px;transform:translateY(40px);transition:transform .3s ease;position:relative;max-height:90vh;overflow-y:auto}
+  .modal-overlay.show .modal-box{transform:translateY(0)}
+  .modal-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:var(--gold);margin-bottom:4px}
+  .modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+  .pix-key-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.2);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center}
+  .pix-key-label{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+  .pix-key-val{font-family:'Orbitron',sans-serif;font-size:15px;color:var(--gold);font-weight:700;word-break:break-all}
+  .pix-amount{font-size:28px;font-family:'Orbitron',sans-serif;font-weight:900;color:var(--success);text-align:center;margin:16px 0}
+  .pix-instructions{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px}
+  .pix-instructions strong{color:var(--text)}
+  .modal-btns{display:flex;gap:10px}
+  .btn-cancel{flex:1;padding:13px;border:1px solid rgba(255,255,255,.1);background:transparent;border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s}
+  .btn-cancel:hover{border-color:rgba(255,255,255,.2);color:var(--text)}
+  .btn-confirm{flex:2;padding:13px;border:none;border-radius:10px;background:linear-gradient(135deg,#FFD700,#FFA500);color:#0a0b0f;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s;box-shadow:0 4px 16px rgba(255,165,0,.25)}
+  .btn-confirm:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,165,0,.4)}
+  .btn-confirm:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:calc(var(--bottom-h) + 12px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:14px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:300;opacity:0;pointer-events:none;transition:all .3s;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.success{border-color:rgba(0,229,160,.4);color:var(--success)}
+  .toast.error{border-color:rgba(255,77,109,.4);color:var(--danger)}
+
+  /* RANKING */
+  .rank-list{display:flex;flex-direction:column;gap:10px}
+  .rank-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+  .rank-pos{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;width:28px;text-align:center}
+  .rank-pos.gold{color:#FFD700}.rank-pos.silver{color:#C0C0C0}.rank-pos.bronze{color:#CD7F32}.rank-pos.other{color:var(--muted);font-size:13px}
+  .rank-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(255,165,0,.1));display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(255,215,0,.2);flex-shrink:0}
+  .rank-name{flex:1;font-weight:700;font-size:15px}
+  .rank-pts{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--gold)}
+
+  /* CARTEIRA */
+  .wallet-card{background:linear-gradient(135deg,#1a1028,#0e1820);border:1px solid rgba(255,215,0,.2);border-radius:18px;padding:24px;position:relative;overflow:hidden}
+  .wallet-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,215,0,.12),transparent)}
+  .wallet-lbl{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
+  .wallet-val{font-family:'Orbitron',sans-serif;font-size:36px;font-weight:900;color:var(--gold);margin:8px 0 4px}
+  .wallet-sub{font-size:12px;color:var(--muted)}
+  .wallet-actions{display:flex;gap:10px;margin-top:20px}
+  .wallet-btn{flex:1;padding:12px;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;border:none}
+  .wallet-btn.add{background:linear-gradient(135deg,#FFD700,#FFA500);color:#0a0b0f;box-shadow:0 4px 16px rgba(255,165,0,.2)}
+  .wallet-btn.add:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,165,0,.35)}
+  .wallet-btn.sec{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+  .hist-list{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+  .hist-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+  .hist-icon{font-size:18px}
+  .hist-desc{flex:1;font-size:13px;font-weight:600}
+  .hist-desc-sub{font-size:11px;color:var(--muted);margin-top:1px}
+  .hist-val{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700}
+  .hist-val.debit{color:var(--danger)}.hist-val.credit{color:var(--success)}
+
+  /* SALDO OPTS */
+  .saldo-options{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+  .saldo-opt{flex:1;min-width:80px;padding:12px 8px;text-align:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--text);transition:all .2s}
+  .saldo-opt:hover,.saldo-opt.selected{border-color:rgba(255,215,0,.4);background:rgba(255,215,0,.06);color:var(--gold)}
+
+  /* BOTTOM NAV */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;height:var(--bottom-h);background:rgba(8,10,16,.95);backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;align-items:stretch}
+  .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:all .2s;border:none;background:transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;padding:8px 4px}
+  .nav-item.active{color:var(--gold)}
+  .nav-icon{font-size:22px;line-height:1;transition:transform .2s}
+  .nav-item.active .nav-icon{transform:scale(1.15)}
+  .nav-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .nav-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);margin:0 auto;opacity:0}
+  .nav-item.active .nav-dot{opacity:1}
+  .page-section{display:none}.page-section.active{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+  /* LOADING */
+  .loading-placeholder{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+  .spinner{display:inline-block;width:24px;height:24px;border:2px solid rgba(255,215,0,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <img src="./logo.png" alt="Arena Amadora" class="topbar-logo" onerror="this.style.display='none'">
+  <div class="topbar-brand">
+    <div class="topbar-brand-name">Arena Amadora</div>
+    <div class="topbar-brand-sub">Olá, <span id="user-name-display">Jogador</span></div>
+  </div>
+  <div class="saldo-badge">💰 R$ <span id="saldo-display">0,00</span></div>
+</header>
+
+<!-- TORNEIOS -->
+<div class="page-section active" id="page-torneios">
+  <div class="hero">
+    <span class="hero-emoji">🏆</span>
+    <div class="hero-title">Torneios Amadores</div>
+    <div class="hero-sub">Participe dos melhores campeonatos!</div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val" id="stat-torneios">-</div><div class="hero-stat-lbl">Torneios</div></div>
+      <div class="hero-stat"><div class="hero-stat-val" id="stat-jogadores">-</div><div class="hero-stat-lbl">Inscrições</div></div>
+      <div class="hero-stat"><div class="hero-stat-val" id="stat-premios">-</div><div class="hero-stat-lbl">Em Prêmios</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-title">🎮 Jogos</div></div>
+    <div class="games-scroll" id="games-scroll"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">⚡ Torneios</div>
+      <span style="font-size:12px;color:var(--muted)" id="torneios-count"></span>
+    </div>
+    <div class="tournaments-list" id="tournaments-list">
+      <div class="loading-placeholder"><div class="spinner"></div><br>Carregando torneios...</div>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- RANKING -->
+<div class="page-section" id="page-ranking">
+  <div class="section">
+    <div class="section-header" style="margin-bottom:20px"><div class="section-title">🥇 Ranking Geral</div></div>
+    <div class="rank-list" id="rank-list"><div class="loading-placeholder"><div class="spinner"></div><br>Carregando...</div></div>
+  </div>
+</div>
+
+<!-- CARTEIRA -->
+<div class="page-section" id="page-carteira">
+  <div class="section">
+    <div class="section-header" style="margin-bottom:20px"><div class="section-title">💰 Minha Carteira</div></div>
+    <div class="wallet-card">
+      <div class="wallet-lbl">Saldo disponível</div>
+      <div class="wallet-val">R$ <span id="wallet-saldo">0,00</span></div>
+      <div class="wallet-sub">Atualizado em tempo real</div>
+      <div class="wallet-actions">
+        <button class="wallet-btn add" id="btn-add-saldo">+ Adicionar</button>
+        <button class="wallet-btn sec" id="btn-refresh-hist">🔄 Atualizar</button>
+      </div>
+    </div>
+    <div class="hist-list" id="hist-list" style="margin-top:20px">
+      <div class="loading-placeholder">Nenhuma transação ainda</div>
+    </div>
+  </div>
+</div>
+
+<!-- PERFIL -->
+<div class="page-section" id="page-perfil">
+  <div class="section">
+    <div style="text-align:center;padding:24px 0 16px">
+      <div style="font-size:64px;margin-bottom:12px">👤</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--gold)" id="perfil-name">-</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px" id="perfil-phone">-</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
+        <div style="font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--gold)" id="perfil-inscricoes">-</div>
+        <div style="font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px">Inscrições</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
+        <div style="font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--success)" id="perfil-saldo">-</div>
+        <div style="font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px">Saldo</div>
+      </div>
+    </div>
+    <button id="btn-logout" style="width:100%;padding:14px;border:1px solid rgba(255,77,109,.3);background:rgba(255,77,109,.08);border-radius:12px;color:var(--danger);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s">
+      🚪 Sair da Arena
+    </button>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-item active" data-page="torneios"><span class="nav-icon">🏆</span><span class="nav-label">Torneios</span><span class="nav-dot"></span></button>
+  <button class="nav-item" data-page="ranking"><span class="nav-icon">📊</span><span class="nav-label">Ranking</span><span class="nav-dot"></span></button>
+  <button class="nav-item" data-page="carteira"><span class="nav-icon">💰</span><span class="nav-label">Carteira</span><span class="nav-dot"></span></button>
+  <button class="nav-item" data-page="perfil"><span class="nav-icon">👤</span><span class="nav-label">Perfil</span><span class="nav-dot"></span></button>
+</nav>
+
+<!-- MODAL PIX -->
+<div class="modal-overlay" id="modal-pix">
+  <div class="modal-box">
+    <div class="modal-title">💳 Pagamento via PIX</div>
+    <div class="modal-sub" id="modal-torneio-nome">Inscrição no torneio</div>
+    <div class="pix-key-box">
+      <div class="pix-key-label">Chave PIX</div>
+      <div class="pix-key-val" id="pix-key-display">arena@amadora.com</div>
+    </div>
+    <div class="pix-amount" id="pix-amount-display">R$ 0,00</div>
+    <div class="pix-instructions">
+      <strong>Instruções:</strong><br>
+      1. Abra seu banco e selecione <strong>Pagar via PIX</strong><br>
+      2. Cole a chave acima<br>
+      3. Insira o valor exato<br>
+      4. No campo <strong>Descrição</strong>, informe seu nome<br>
+      5. Toque em <strong>"Já paguei"</strong> para confirmar
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="modal-cancel">Cancelar</button>
+      <button class="btn-confirm" id="modal-confirm">✅ Já Paguei!</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SALDO -->
+<div class="modal-overlay" id="modal-saldo">
+  <div class="modal-box">
+    <div class="modal-title">💰 Adicionar Saldo</div>
+    <div class="modal-sub">Escolha o valor para depositar via PIX</div>
+    <div class="saldo-options" id="saldo-options">
+      <div class="saldo-opt selected" data-val="10">R$10</div>
+      <div class="saldo-opt" data-val="25">R$25</div>
+      <div class="saldo-opt" data-val="50">R$50</div>
+      <div class="saldo-opt" data-val="100">R$100</div>
+    </div>
+    <div class="pix-key-box">
+      <div class="pix-key-label">Chave PIX para depósito</div>
+      <div class="pix-key-val" id="pix-saldo-key">arena@amadora.com</div>
+    </div>
+    <div class="pix-instructions">Envie o PIX e toque em <strong>"Confirmar"</strong>.<br>O saldo será adicionado à sua conta.</div>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="saldo-cancel">Cancelar</button>
+      <button class="btn-confirm" id="saldo-confirm">✅ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GAMES = {
+  coc:{name:'Clash of Clans',emoji:'🏰'}, cr:{name:'Clash Royale',emoji:'⚔️'}, brawl:{name:'Brawl Stars',emoji:'🌟'},
+  ff:{name:'Free Fire',emoji:'🔥'}, pubg:{name:'PUBG Mobile',emoji:'🎯'}, efootball:{name:'eFootball',emoji:'⚽'}, mc:{name:'Mobile Legends',emoji:'🗡️'}
+};
+
+let torneiosCache = [];
+let selectedGame = 'all';
+let pixTorneioId = null;
+let saldoVal = 10;
+let pixKey = 'arena@amadora.com';
+let currentUser = null;
+
+// ── API ───────────────────────────────────────────────────
+async function api(path, opts={}) {
+  const r = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', ...(opts.headers||{}) } });
+  if (r.status === 401) { window.location.href = '/login.html'; throw new Error('unauth'); }
+  return r;
+}
+
+// ── Init ──────────────────────────────────────────────────
+async function init() {
+  try {
+    const me = await (await api('/api/auth/me')).json();
+    if (me.role === 'admin') { window.location.href = '/admin.html'; return; }
+    currentUser = me;
+    refreshUserUI(me);
+
+    // Load config for PIX key
+    const cfg = await (await api('/api/config')).json();
+    pixKey = cfg.pix_key || 'arena@amadora.com';
+    document.getElementById('pix-saldo-key').textContent = pixKey;
+
+    await loadTorneios();
+  } catch(e) { if(e.message!=='unauth') window.location.href='/login.html'; }
+}
+
+function refreshUserUI(u) {
+  const s = (u.saldo||0).toFixed(2).replace('.',',');
+  document.getElementById('saldo-display').textContent = s;
+  document.getElementById('wallet-saldo').textContent = s;
+  document.getElementById('user-name-display').textContent = u.name;
+  document.getElementById('perfil-name').textContent = u.name;
+  document.getElementById('perfil-phone').textContent = u.phone || '-';
+  document.getElementById('perfil-saldo').textContent = 'R$'+(u.saldo||0).toFixed(0);
+}
+
+// ── Torneios ──────────────────────────────────────────────
+async function loadTorneios() {
+  const r = await api('/api/torneios');
+  torneiosCache = await r.json();
+  renderGames(); renderTorneios();
+}
+
+function renderGames() {
+  const scroll = document.getElementById('games-scroll');
+  const counts = {};
+  torneiosCache.forEach(t => { counts[t.jogo] = (counts[t.jogo]||0)+1; });
+
+  scroll.innerHTML = '';
+  const allCard = mkEl('div','game-card'+(selectedGame==='all'?' active':''));
+  allCard.innerHTML = `<span class="game-emoji">🎮</span><div class="game-name">Todos</div><div class="game-count">${torneiosCache.length} torneios</div>`;
+  allCard.addEventListener('click',()=>{selectedGame='all';renderGames();renderTorneios();});
+  scroll.appendChild(allCard);
+
+  Object.entries(GAMES).forEach(([id,g]) => {
+    if(!counts[id]) return;
+    const c = mkEl('div','game-card'+(selectedGame===id?' active':''));
+    c.innerHTML = `<span class="game-emoji">${g.emoji}</span><div class="game-name">${g.name}</div><div class="game-count">${counts[id]} torneio${counts[id]>1?'s':''}</div>`;
+    c.addEventListener('click',()=>{selectedGame=id;renderGames();renderTorneios();});
+    scroll.appendChild(c);
+  });
+}
+
+function renderTorneios() {
+  const filtered = selectedGame==='all' ? torneiosCache : torneiosCache.filter(t=>t.jogo===selectedGame);
+  const container = document.getElementById('tournaments-list');
+  document.getElementById('torneios-count').textContent = filtered.length+' disponíveis';
+
+  const totalPremios = torneiosCache.reduce((s,t)=>s+(t.premio||0),0);
+  const totalInscs = torneiosCache.reduce((s,t)=>s+(t.inscricoes_count||0),0);
+  document.getElementById('stat-torneios').textContent = torneiosCache.length;
+  document.getElementById('stat-jogadores').textContent = totalInscs;
+  document.getElementById('stat-premios').textContent = 'R$'+totalPremios;
+
+  if(!filtered.length){ container.innerHTML='<div class="loading-placeholder">Nenhum torneio disponível para este jogo</div>'; return; }
+
+  container.innerHTML = filtered.map((t,i) => {
+    const g = GAMES[t.jogo]||{emoji:'🎮',name:t.jogo};
+    const inscs = t.inscricoes_count||0;
+    const vagas = t.vagas||32;
+    const pct = Math.min(100,Math.round((inscs/vagas)*100));
+    const enrolled = t.inscrito;
+    const cheio = inscs>=vagas;
+    const gratuito = !t.taxa||t.taxa===0;
+
+    let badgeClass='aberto',badgeText='● Aberto';
+    if(cheio){badgeClass='cheio';badgeText='● Lotado';}
+    else if(t.status==='breve'){badgeClass='breve';badgeText='⏳ Em breve';}
+
+    let btnClass=gratuito?'free-pill':'open',btnText=gratuito?'🎮 Inscrever Grátis':`💳 Inscrever · R$${t.taxa}`;
+    if(enrolled){btnClass='enrolled';btnText='✅ Inscrito!';}
+    else if(cheio){btnClass='closed';}
+
+    return `<div class="t-card" style="animation-delay:${i*.07}s">
+      <div class="t-card-header">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:20px">${g.emoji}</span>
+            <span class="t-badge ${badgeClass}">${badgeText}</span>
+          </div>
+          <div class="t-title">${t.nome}</div>
+          <div class="t-game-name">${g.name}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px">Data</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)">${t.data_txt||'A definir'}</div>
+        </div>
+      </div>
+      <div class="t-card-body">
+        <div class="t-info-grid">
+          <div class="t-info"><div class="t-info-val gold">R$${t.premio||0}</div><div class="t-info-lbl">Prêmio</div></div>
+          <div class="t-info"><div class="t-info-val">${inscs}/${vagas}</div><div class="t-info-lbl">Vagas</div></div>
+          <div class="t-info"><div class="t-info-val ${gratuito?'green':''}">${gratuito?'Grátis':'R$'+t.taxa}</div><div class="t-info-lbl">Inscrição</div></div>
+        </div>
+        <div class="t-progress"><div class="t-progress-bar" style="width:${pct}%"></div></div>
+        <button class="btn-inscricao ${btnClass}" data-id="${t.id}" ${(cheio&&!enrolled)||enrolled?'disabled':''}>
+          ${btnText}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('.btn-inscricao:not([disabled])').forEach(btn => {
+    btn.addEventListener('click',()=>handleInscrever(btn.dataset.id,btn));
+  });
+}
+
+async function handleInscrever(id, btn) {
+  const t = torneiosCache.find(t=>t.id===id);
+  if(!t) return;
+  if(!t.taxa||t.taxa===0) return doInscrever(id,btn);
+  // Show PIX modal
+  pixTorneioId=id;
+  document.getElementById('modal-torneio-nome').textContent=t.nome;
+  document.getElementById('pix-key-display').textContent=pixKey;
+  document.getElementById('pix-amount-display').textContent='R$ '+t.taxa.toFixed(2);
+  document.getElementById('modal-pix').classList.add('show');
+}
+
+async function doInscrever(id, btn) {
+  if(btn){ btn.disabled=true; btn.textContent='Inscrevendo...'; }
+  try {
+    const r = await api(`/api/torneios/${id}/inscrever`,{method:'POST'});
+    const d = await r.json();
+    if(!r.ok){ showToast('⚠️ '+(d.error||'Erro'), 'error'); return; }
+    showToast('✅ Inscrito com sucesso!','success');
+    // Refresh user and torneios
+    const me = await (await api('/api/auth/me')).json();
+    currentUser=me; refreshUserUI(me);
+    await loadTorneios();
+  } catch(e){ showToast('Erro de conexão','error'); }
+  finally { if(btn&&!btn.disabled) { btn.disabled=false; } }
+}
+
+// ── Ranking ───────────────────────────────────────────────
+async function loadRanking() {
+  const r = await api('/api/users/ranking');
+  const ranking = await r.json();
+  const medals=['🥇','🥈','🥉'];
+  const posClass=['gold','silver','bronze'];
+  const avatars=['🦁','🐺','🦊','🐯','🦅','🐉','🦈','🐸'];
+  document.getElementById('rank-list').innerHTML = ranking.map((r,i)=>`
+    <div class="rank-item">
+      <div class="rank-pos ${posClass[i]||'other'}">${medals[i]||('#'+(i+1))}</div>
+      <div class="rank-avatar">${avatars[i%8]}</div>
+      <div class="rank-name">${r.name}</div>
+      <div class="rank-pts">${(r.inscricoes||0)*100} pts</div>
+    </div>
+  `).join('')||'<div class="loading-placeholder">Nenhum jogador ainda</div>';
+}
+
+// ── Historico ─────────────────────────────────────────────
+async function loadHistorico() {
+  const r = await api('/api/users/historico');
+  const hist = await r.json();
+  const container = document.getElementById('hist-list');
+  if(!hist.length){ container.innerHTML='<div class="loading-placeholder">Nenhuma transação ainda</div>'; return; }
+  container.innerHTML = hist.map(h=>`
+    <div class="hist-item">
+      <div class="hist-icon">${h.tipo==='credito'?'💸':'🎮'}</div>
+      <div><div class="hist-desc">${h.descricao}</div><div class="hist-desc-sub">${new Date(h.created_at).toLocaleDateString('pt-BR')}</div></div>
+      <div class="hist-val ${h.tipo}">${h.tipo==='credito'?'+':'-'}R$${Math.abs(h.valor).toFixed(2)}</div>
+    </div>
+  `).join('');
+}
+
+// ── Nav ───────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.page-section').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    const page = btn.dataset.page;
+    document.getElementById('page-'+page).classList.add('active');
+    if(page==='ranking') loadRanking();
+    if(page==='carteira'){ loadHistorico(); refreshUserUI(currentUser||{}); }
+    if(page==='perfil' && currentUser){ refreshUserUI(currentUser); }
+  });
+});
+
+// ── Modals ────────────────────────────────────────────────
+document.getElementById('modal-cancel').addEventListener('click',()=>{document.getElementById('modal-pix').classList.remove('show');pixTorneioId=null;});
+document.getElementById('modal-confirm').addEventListener('click',async()=>{
+  if(!pixTorneioId) return;
+  const btn=document.getElementById('modal-confirm');
+  btn.disabled=true; btn.textContent='Processando...';
+  document.getElementById('modal-pix').classList.remove('show');
+  const t=torneiosCache.find(t=>t.id===pixTorneioId);
+  await doInscrever(pixTorneioId, null);
+  pixTorneioId=null; btn.disabled=false; btn.textContent='✅ Já Paguei!';
+});
+
+document.getElementById('btn-add-saldo').addEventListener('click',()=>document.getElementById('modal-saldo').classList.add('show'));
+document.getElementById('saldo-cancel').addEventListener('click',()=>document.getElementById('modal-saldo').classList.remove('show'));
+document.getElementById('btn-refresh-hist').addEventListener('click',loadHistorico);
+
+document.querySelectorAll('.saldo-opt').forEach(opt=>{
+  opt.addEventListener('click',()=>{
+    document.querySelectorAll('.saldo-opt').forEach(o=>o.classList.remove('selected'));
+    opt.classList.add('selected'); saldoVal=parseInt(opt.dataset.val);
+  });
+});
+
+document.getElementById('saldo-confirm').addEventListener('click',async()=>{
+  const btn=document.getElementById('saldo-confirm');
+  btn.disabled=true; btn.textContent='Processando...';
+  try {
+    const r=await api('/api/users/deposito',{method:'POST',body:JSON.stringify({valor:saldoVal})});
+    const d=await r.json();
+    if(!r.ok){ showToast('⚠️ '+(d.error||'Erro'),'error'); return; }
+    document.getElementById('modal-saldo').classList.remove('show');
+    showToast(`💰 R$${saldoVal},00 adicionados!`,'success');
+    const me=await (await api('/api/auth/me')).json();
+    currentUser=me; refreshUserUI(me);
+    loadHistorico();
+  } catch(e){ showToast('Erro de conexão','error'); }
+  finally{ btn.disabled=false; btn.textContent='✅ Confirmar'; }
+});
+
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});
+});
+
+document.getElementById('btn-logout').addEventListener('click',async()=>{
+  await fetch('/api/auth/logout',{method:'POST'});
+  window.location.href='/login.html';
+});
+
+// ── Helpers ───────────────────────────────────────────────
+function mkEl(tag,cls=''){const e=document.createElement(tag);e.className=cls;return e;}
+
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+type;
+  setTimeout(()=>t.className='toast',2800);
+}
+
+init();
+</script>
+</body>
+</html>
