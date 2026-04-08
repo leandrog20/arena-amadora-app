@@ -53,7 +53,6 @@ app.use('/api', apiLimiter);
 // ── Arquivos estáticos ────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
 
-<<<<<<< HEAD
 // ── Rotas da API ──────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   if (isShuttingDown) {
@@ -70,13 +69,6 @@ app.use('/api/config',   require('./routes/config'));
 app.use('/api/withdrawals', require('./routes/withdrawals'));
 app.use('/api/realtime', require('./routes/realtime'));
 app.use('/api/audit', require('./routes/audit'));
-=======
-// ── API Routes ────────────────────────────────────────────
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/torneios', require('./routes/torneios'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/config', require('./routes/config'));
->>>>>>> upstream/main
 
 // ── 404 para rotas API desconhecidas ─────────────────────
 app.use('/api/*', (req, res) => {
@@ -109,7 +101,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-<<<<<<< HEAD
 // ── Start ─────────────────────────────────────────────────
 const server = app.listen(env.PORT, () => {
   console.log(`🏆 Arena Amadora rodando em http://localhost:${env.PORT} [${env.NODE_ENV}]`);
@@ -145,10 +136,6 @@ function gracefulShutdown(signal) {
     Logger.error('shutdown_timeout');
     process.exit(1);
   }, 10000).unref();
-=======
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config()
->>>>>>> upstream/main
 }
 
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
