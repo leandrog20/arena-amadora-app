@@ -36,6 +36,8 @@ cp .env.example .env
 npm start
 # ou com hot reload:
 npm run dev
+# ou modo live (produção local):
+npm run live
 
 # 4. Acessar
 # http://localhost:3000/login.html
@@ -88,6 +90,7 @@ Railway suporta disco persistente — ideal para SQLite.
 
 | Método | Rota | Auth | Descrição |
 |--------|------|------|-----------|
+| GET | `/api/health` | — | Healthcheck da aplicação |
 | POST | `/api/auth/register` | — | Cadastrar usuário |
 | POST | `/api/auth/login` | — | Login (retorna cookie JWT) |
 | POST | `/api/auth/logout` | — | Logout |
@@ -128,3 +131,7 @@ Railway suporta disco persistente — ideal para SQLite.
 | jsonwebtoken | Autenticação JWT |
 | cors | Cross-Origin |
 | cookie-parser | Leitura de cookies |
+
+## 🧾 Requisitos
+
+- Node.js `>=22` (projeto usa `node:sqlite`)

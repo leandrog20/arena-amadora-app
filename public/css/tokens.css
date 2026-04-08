@@ -1,0 +1,75 @@
+/* ═══════════════════════════════════════════════
+   tokens.css — Design Tokens (Variaveis Core)
+   Escalabilidade e Consistência da Arena Amadora
+   ═══════════════════════════════════════════════ */
+
+:root {
+  /* ── PALETA DE CORES (Gamer Neutral) ── */
+  --bg-950: #05060a;
+  /* Darkest */
+  --bg-900: #080a10;
+  /* Body */
+  --bg-800: #0f121a;
+  /* Layers */
+  --bg-700: #1a1e2a;
+  /* Surfaces */
+
+  /* ── CORES DE DESTAQUE ── */
+  --primary: #FFD700;
+  /* Gold */
+  --primary-h: #FFA500;
+  /* Gold Hover */
+  --primary-glow: rgba(255, 215, 0, 0.4);
+
+  --secondary: #a855f7;
+  /* Purple (Admin/Level) */
+  --secondary-h: #7c3aed;
+  --secondary-glow: rgba(168, 85, 247, 0.4);
+
+  /* ── CORES DE STATUS ── */
+  --success: #00e5a0;
+  --success-glow: rgba(0, 229, 160, 0.3);
+  --danger: #ff4d6d;
+  --danger-glow: rgba(255, 77, 109, 0.3);
+  --warning: #ffb800;
+
+  /* ── TEXTO ── */
+  --text-main: #e4e6f0;
+  --text-dim: #a0a4b8;
+  --text-muted: #5a5d72;
+
+  /* ── BORDAS & GLASS ── */
+  --border-white: rgba(255, 255, 255, 0.08);
+  --border-primary: rgba(255, 215, 0, 0.15);
+  --glass-bg: rgba(13, 15, 24, 0.7);
+  --glass-blur: 12px;
+
+  /* ── ESCALA DE ESPAÇAMENTO (base 4px) ── */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-12: 48px;
+
+  /* ── RAIOS DE BORDA (Radius) ── */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* ── TIPOGRAFIA ── */
+  --font-main: 'Inter', sans-serif;
+  --font-display: 'Orbitron', sans-serif;
+  --font-accent: 'Barlow Condensed', sans-serif;
+  --font-tech: 'Rajdhani', sans-serif;
+
+  /* ── TIMING & ANIMAÇÃO ── */
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --trans-fast: all 0.2s ease;
+  --trans-premium: all 0.5s var(--ease-out-expo);
+}
+}

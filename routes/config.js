@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db = require('../db/database');
-const { requireAdmin } = require('./auth');
+const { requireAdmin } = require('../middlewares/auth.middleware');
+const AuditService = require('../services/audit.service');
 
 // ── GET /api/config ───────────────────────────────────────
 router.get('/', (req, res) => {
@@ -19,6 +20,10 @@ router.put('/', requireAdmin, (req, res) => {
     }
   });
   update(req.body);
+  AuditService.adminAction(req, 'CONFIG_ATUALIZADA', {
+    resourceType: 'config',
+    details: { keys: Object.keys(req.body || {}) }
+  });
   res.json({ ok: true });
 });
 
