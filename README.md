@@ -59,6 +59,7 @@ Railway suporta disco persistente — ideal para SQLite.
    JWT_SECRET=uma_string_aleatoria_longa_aqui
    ADMIN_PASSWORD=sua_senha_segura
    NODE_ENV=production
+   ALLOWED_ORIGINS=https://arena-amadora-app-production.up.railway.app
    ```
 5. Railway detecta `package.json` e roda `npm start` automaticamente
 6. Acesse a URL gerada pelo Railway

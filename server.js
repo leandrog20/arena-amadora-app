@@ -7,8 +7,20 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,https://arena-amadora-app-production.up.railway.app')
+  .split(',')
+  .map(v => v.trim())
+  .filter(Boolean);
+
 // ── Middleware ────────────────────────────────────────────
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    return callback(new Error(`CORS: Origin ${origin} não permitida.`));
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
