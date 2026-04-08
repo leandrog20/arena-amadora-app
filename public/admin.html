@@ -104,6 +104,7 @@
             <option value="mc">Mobile Legends</option>
           </select>
         </div>
+<<<<<<< HEAD
         <div class="field">
           <label>Data</label>
           <input type="date" id="t-data">
@@ -122,6 +123,23 @@
         </div>
         <div class="field">
           <label>Formato</label>
+=======
+        <div class="field"><label>Data</label><input type="date" id="t-data"></div>
+        <div class="field"><label>Vagas</label><input type="number" id="t-vagas" value="32" min="4" max="256"></div>
+        <div class="field"><label>Taxa (R$) – 0=Grátis</label><input type="number" id="t-taxa" value="10" min="0" step="0.5"></div>
+        <div class="field"><label>Prêmio Total Destinado (R$)</label><input type="number" id="t-premio" value="50" min="0" step="0.5"></div>
+        <div class="field span2" id="calc-rateio" style="display:none; background:rgba(168,85,247,0.06); border:1px dashed rgba(168,85,247,0.3); border-radius:10px; padding:12px;">
+           <div style="font-size:11px; font-weight:700; color:var(--admin); margin-bottom:6px; letter-spacing:1.5px; text-transform:uppercase;">📊 Projeção de Rateio (Cenário Lotado)</div>
+           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px; color:var(--text); margin-bottom:6px">
+             <div>Arrecadação Max: <strong id="c-total" style="color:var(--text)">R$0.00</strong></div>
+             <div>Lucro Admin (10%): <strong id="c-admin" style="color:var(--success)">R$0.00</strong></div>
+             <div>1º Lugar (~70%): <strong id="c-p1" style="color:var(--gold)">R$0.00</strong></div>
+             <div>2º Lugar (~30%): <strong id="c-p2" style="color:var(--gold2)">R$0.00</strong></div>
+           </div>
+           <div style="font-size:10px; color:var(--muted);">*Ao ajustar taxa/vagas, o <b>Prêmio Total Destinado</b> será auto-preenchido com 90% da arrecadação para sorteio.</div>
+        </div>
+        <div class="field"><label>Formato</label>
+>>>>>>> upstream/main
           <select id="t-formato">
             <option value="eliminatorio">Eliminatória Simples</option>
             <option value="dupla">Dupla Eliminação</option>
@@ -334,7 +352,240 @@
 
 <div class="toast" id="toast"></div>
 
+<<<<<<< HEAD
 <script src="./js/shared.js"></script>
 <script src="./js/admin.js"></script>
+=======
+<script>
+const GAME_NAMES={coc:'Clash of Clans',cr:'Clash Royale',brawl:'Brawl Stars',ff:'Free Fire',pubg:'PUBG Mobile',efootball:'eFootball',mc:'Mobile Legends'};
+const GAME_EMOJIS={coc:'🏰',cr:'⚔️',brawl:'🌟',ff:'🔥',pubg:'🎯',efootball:'⚽',mc:'🗡️'};
+
+async function api(path,opts={}){
+  const r=await fetch(path,{...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})}});
+  if(r.status===401){window.location.href='/login.html';throw new Error('unauth');}
+  if(r.status===403){showToast('⚠️ Acesso negado','error');throw new Error('forbidden');}
+  return r;
+}
+
+function showToast(msg,type='info'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+type;setTimeout(()=>t.className='toast',2800);}
+
+// ── Init ──────────────────────────────────────────────────
+async function init(){
+  try{
+    const me=await (await fetch('/api/auth/me')).json();
+    if(!me||me.role!=='admin'){window.location.href='/login.html';return;}
+    await loadDashboard();
+    await loadConfig();
+  }catch(e){if(e.message!=='unauth')window.location.href='/login.html';}
+}
+
+// ── Dashboard ─────────────────────────────────────────────
+async function loadDashboard(){
+  const [statsR,torneiosR]=await Promise.all([api('/api/config/stats'),api('/api/torneios')]);
+  const stats=await statsR.json();
+  const torneios=await torneiosR.json();
+
+  document.getElementById('stat-torneios').textContent=stats.torneios;
+  document.getElementById('stat-users').textContent=stats.usuarios;
+  document.getElementById('stat-receita').textContent='R$'+(stats.receita||0).toFixed(0);
+  document.getElementById('stat-inscricoes').textContent=stats.inscricoes;
+
+  const tbody=document.getElementById('dash-torneios-body');
+  const recent=torneios.slice(0,6);
+  if(!recent.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">Nenhum torneio ainda</td></tr>';return;}
+  tbody.innerHTML=recent.map(t=>`
+    <tr>
+      <td><div class="t-row-name">${GAME_EMOJIS[t.jogo]||'🎮'} ${t.nome}</div><div class="t-row-sub">${GAME_NAMES[t.jogo]||t.jogo} · ${t.data_txt||'Sem data'}</div></td>
+      <td>${t.inscricoes_count||0}/${t.vagas}</td>
+      <td style="color:var(--gold);font-family:'Orbitron',sans-serif;font-size:12px">R$${t.premio||0}</td>
+      <td><span class="mini-badge ${(t.inscricoes_count||0)>=(t.vagas||32)?'encerrado':'aberto'}">${(t.inscricoes_count||0)>=(t.vagas||32)?'Lotado':'Aberto'}</span></td>
+    </tr>`).join('');
+}
+
+// ── Criar Torneio ─────────────────────────────────────────
+function updateRateio() {
+  const vagas = parseInt(document.getElementById('t-vagas').value) || 0;
+  const taxa = parseFloat(document.getElementById('t-taxa').value) || 0;
+  const total = vagas * taxa;
+  const calcBox = document.getElementById('calc-rateio');
+  if (total > 0) {
+    calcBox.style.display = 'block';
+    const lucro = total * 0.10;
+    const premio = total * 0.90;
+    const p1 = premio * 0.70;
+    const p2 = premio * 0.30;
+    document.getElementById('c-total').textContent = 'R$' + total.toFixed(2);
+    document.getElementById('c-admin').textContent = 'R$' + lucro.toFixed(2);
+    document.getElementById('c-p1').textContent = 'R$' + p1.toFixed(2);
+    document.getElementById('c-p2').textContent = 'R$' + p2.toFixed(2);
+    document.getElementById('t-premio').value = premio.toFixed(2);
+  } else {
+    calcBox.style.display = 'none';
+  }
+}
+document.getElementById('t-vagas').addEventListener('input', updateRateio);
+document.getElementById('t-taxa').addEventListener('input', updateRateio);
+setTimeout(updateRateio, 200);
+
+document.getElementById('btn-criar-torneio').addEventListener('click',async()=>{
+  const nome=document.getElementById('t-nome').value.trim();
+  const jogo=document.getElementById('t-jogo').value;
+  const dataRaw=document.getElementById('t-data').value;
+  const vagas=parseInt(document.getElementById('t-vagas').value)||32;
+  const taxa=parseFloat(document.getElementById('t-taxa').value)||0;
+  const premio=parseFloat(document.getElementById('t-premio').value)||0;
+  const formato=document.getElementById('t-formato').value;
+  const regras=document.getElementById('t-regras').value.trim();
+  const data_txt=dataRaw?new Date(dataRaw+'T12:00:00').toLocaleDateString('pt-BR'):'A definir';
+  if(!nome) return showToast('⚠️ Informe o nome do torneio','error');
+  const btn=document.getElementById('btn-criar-torneio');
+  btn.disabled=true;btn.textContent='Criando...';
+  try{
+    const r=await api('/api/torneios',{method:'POST',body:JSON.stringify({nome,jogo,data_txt,vagas,taxa,premio,formato,regras})});
+    const d=await r.json();
+    if(!r.ok) return showToast('⚠️ '+(d.error||'Erro'),'error');
+    showToast('✅ Torneio criado!','success');
+    ['t-nome','t-regras'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('t-taxa').value='10';document.getElementById('t-vagas').value='32';
+    updateRateio();
+    await loadDashboard();
+  }catch(e){if(e.message!=='unauth')showToast('Erro de conexão','error');}
+  finally{btn.disabled=false;btn.textContent='⚡ Criar Torneio';}
+});
+
+// ── All Torneios ──────────────────────────────────────────
+async function loadAllTorneios(){
+  const r=await api('/api/torneios');
+  const torneios=await r.json();
+  const container=document.getElementById('all-torneios-list');
+  document.getElementById('all-t-count').textContent=torneios.length+' torneios';
+  if(!torneios.length){container.innerHTML='<div class="loading-placeholder">Nenhum torneio ainda. Crie um!</div>';return;}
+  container.innerHTML=torneios.map(t=>{
+    const inscs=t.inscricoes_count||0;
+    const pct=Math.min(100,Math.round((inscs/(t.vagas||32))*100));
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:13px;color:var(--muted)">${GAME_EMOJIS[t.jogo]||'🎮'} ${GAME_NAMES[t.jogo]||t.jogo} · ${t.data_txt||'Sem data'}</div>
+          <div style="font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-top:4px">${t.nome}</div>
+        </div>
+        <span class="mini-badge ${inscs>=(t.vagas||32)?'encerrado':'aberto'}">${inscs>=(t.vagas||32)?'Lotado':'Aberto'}</span>
+      </div>
+      <div style="display:flex;gap:16px;font-size:12px;color:var(--muted);margin-bottom:12px;flex-wrap:wrap">
+        <span>👥 <strong style="color:var(--text)">${inscs}/${t.vagas}</strong></span>
+        <span>💰 <strong style="color:var(--gold)">R$${t.taxa||0}</strong> entrada</span>
+        <span>🏆 <strong style="color:var(--success)">R$${t.premio||0}</strong> prêmio</span>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-bottom:12px"><div style="height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));width:${pct}%"></div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-admin danger sm" onclick="deleteTorneio('${t.id}')">🗑️ Excluir</button>
+        <button class="btn-admin sm" style="background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);color:var(--success)" onclick="verInscritos('${t.id}','${t.nome}')">👥 Inscritos (${inscs})</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteTorneio(id){
+  if(!confirm('Excluir este torneio?'))return;
+  const r=await api(`/api/torneios/${id}`,{method:'DELETE'});
+  if(r.ok){showToast('🗑️ Torneio excluído','info');await loadAllTorneios();await loadDashboard();}
+  else showToast('Erro ao excluir','error');
+}
+
+async function verInscritos(id,nome){
+  const r=await api(`/api/torneios/${id}/inscritos`);
+  const list=await r.json();
+  if(!list.length){showToast('Nenhum inscrito ainda','info');return;}
+  alert(`Inscritos em "${nome}":\n\n${list.map(u=>`• ${u.name} (${u.phone})`).join('\n')}`);
+}
+
+window.deleteTorneio=deleteTorneio;
+window.verInscritos=verInscritos;
+
+// ── Usuários ──────────────────────────────────────────────
+async function loadUsers(){
+  const r=await api('/api/users');
+  const users=await r.json();
+  const container=document.getElementById('users-list');
+  const avatars=['🦁','🐺','🦊','🐯','🦅','🐉','🦈','🐸','🦋','🦜'];
+  document.getElementById('users-count').textContent=users.length+' usuários';
+  if(!users.length){container.innerHTML='<div class="loading-placeholder">Nenhum usuário cadastrado</div>';return;}
+  container.innerHTML=users.map((u,i)=>`
+    <div class="user-card">
+      <div class="user-avatar">${avatars[i%10]}</div>
+      <div class="user-info">
+        <div class="user-name">${u.name}</div>
+        <div class="user-meta">📱 ${u.phone||'-'} · 🎮 ${u.inscricoes_count||0} inscrições · ${new Date(u.created_at).toLocaleDateString('pt-BR')}</div>
+      </div>
+      <div>
+        <div class="user-saldo">R$${(u.saldo||0).toFixed(2)}</div>
+        <button class="btn-admin danger sm" style="margin-top:6px;width:100%" onclick="deleteUser(${u.id})">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteUser(id){
+  if(!confirm('Excluir este usuário?'))return;
+  const r=await api(`/api/users/${id}`,{method:'DELETE'});
+  if(r.ok){showToast('🗑️ Usuário excluído','info');await loadUsers();await loadDashboard();}
+  else showToast('Erro ao excluir','error');
+}
+window.deleteUser=deleteUser;
+
+// ── Config ────────────────────────────────────────────────
+async function loadConfig(){
+  const r=await api('/api/config');
+  const cfg=await r.json();
+  document.getElementById('pix-current-display').textContent=cfg.pix_key||'arena@amadora.com';
+  document.getElementById('cfg-nome').value=cfg.arena_nome||'Arena Amadora';
+}
+
+document.getElementById('btn-salvar-pix').addEventListener('click',async()=>{
+  const val=document.getElementById('pix-nova').value.trim();
+  if(!val)return showToast('⚠️ Informe a chave PIX','error');
+  const r=await api('/api/config',{method:'PUT',body:JSON.stringify({pix_key:val})});
+  if(r.ok){document.getElementById('pix-nova').value='';await loadConfig();showToast('✅ Chave PIX salva!','success');}
+  else showToast('Erro ao salvar','error');
+});
+
+document.getElementById('btn-salvar-cfg').addEventListener('click',async()=>{
+  const nome=document.getElementById('cfg-nome').value.trim();
+  const r=await api('/api/config',{method:'PUT',body:JSON.stringify({arena_nome:nome})});
+  if(r.ok)showToast('✅ Configurações salvas!','success');
+  else showToast('Erro ao salvar','error');
+});
+
+document.getElementById('btn-limpar-torneios').addEventListener('click',async()=>{
+  if(!confirm('Excluir TODOS os torneios?'))return;
+  const torneios=await (await api('/api/torneios')).json();
+  await Promise.all(torneios.map(t=>api(`/api/torneios/${t.id}`,{method:'DELETE'})));
+  showToast('🗑️ Torneios removidos','info');
+  await loadDashboard();
+  document.getElementById('all-torneios-list').innerHTML='<div class="loading-placeholder">Nenhum torneio</div>';
+});
+
+// ── Nav ───────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.page-section').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    const page=btn.dataset.page;
+    document.getElementById('page-'+page).classList.add('active');
+    if(page==='dashboard')loadDashboard();
+    if(page==='torneios')loadAllTorneios();
+    if(page==='usuarios')loadUsers();
+    if(page==='config')loadConfig();
+  });
+});
+
+document.getElementById('btn-logout').addEventListener('click',async()=>{
+  await fetch('/api/auth/logout',{method:'POST'});
+  window.location.href='/login.html';
+});
+
+init();
+</script>
+>>>>>>> upstream/main
 </body>
 </html>
