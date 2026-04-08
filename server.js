@@ -18,7 +18,7 @@ const { apiLimiter } = require('./middlewares/rateLimit.middleware');
 const { requestContext } = require('./middlewares/request.middleware');
 const Logger = require('./services/logger.service');
 
-const app = express();
+const app = express()
 
 // Estado simples de liveness/readiness para orquestradores
 let isShuttingDown = false;
