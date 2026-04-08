@@ -40,7 +40,7 @@ app.use(cors({
     }
   },
   credentials: true
-}));
+}))
 
 // ── Body + Cookies ────────────────────────────────────────
 app.use(express.json({ limit: '1mb' }));
